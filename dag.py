@@ -505,6 +505,16 @@ def append_memory(path, goal, rep, final):
         pass
 
 
+def top_guard(goal):
+    """TOP_GUARD_V1 — odbij katastrofalan cilj prije planiranja.
+
+    Root cvor ima rolu "plan" i preskace reflex provjeru, pa bi bez ovoga
+    planner model dobio razoran cilj. Ovaj gate radi prije ijednog model poziva.
+    """
+    r = reflex(goal)
+    return r if r["action"] == "block" else None
+
+
 def main():
     p = argparse.ArgumentParser(description="DAG DAG - razgranati zadatak (deterministicki trunk + AI lisce)")
     p.add_argument("goal")
@@ -532,6 +542,12 @@ def main():
     except Exception:
         pass
     levels = [int(x) for x in a.levels.split(",") if x.strip()]
+    g = top_guard(a.goal)
+    if g:
+        print(json.dumps({"goal": a.goal, "action": "block", "reason": g["reason"],
+                          "payload": g["payload"]}, ensure_ascii=False))
+        print(g["payload"])
+        return 2
     endpoints = {"bulk": (a.bulk_url, a.bulk_model),
                  "smart": (a.smart_url, a.smart_model),
                  "free": (a.free_url, a.free_model),
@@ -554,4 +570,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -1,6 +1,19 @@
 import os, sys, unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import reflex
+import dag
+
+
+class TestTopGuard(unittest.TestCase):
+    """Cilj mora biti odbijen prije planiranja (prije ijednog model poziva)."""
+
+    def test_catastrophic_goal_blocked(self):
+        g = dag.top_guard("rm -rf /")
+        self.assertIsNotNone(g)
+        self.assertEqual(g["action"], "block")
+
+    def test_normal_goal_passes(self):
+        self.assertIsNone(dag.top_guard("analiziraj trziste industrijskih masina"))
 
 
 class TestReflex(unittest.TestCase):
